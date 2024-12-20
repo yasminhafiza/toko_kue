@@ -80,71 +80,9 @@ $produk_result = mysqli_query($koneksi, $query_produk);
         });
       });
 
-      // Function to handle form submission
-      function showSuccessAlert() {
-        const alertHTML = `<div class="fixed inset-x-0 top-0 flex items-end justify-right px-4 py-24 justify-center z-50">
-    <div
-        class="max-w-sm w-full shadow-lg rounded px-4 py-3 rounded relative bg-green-400 border-l-4 border-green-700 text-white">
-        <div class="p-2">
-            <div class="flex items-start">
-                <div class="ml-3 w-0 flex-1 pt-0.5">
-                    <p class="text-sm leading-5 font-medium">
-                        Produk telah ditambahkan ke keranjang!
-                    </p>
-                </div>
-                <div class="ml-4 flex-shrink-0 flex">
-                    <button class="inline-flex text-white transition ease-in-out duration-150"
-                    onclick="return this.parentNode.parentNode.parentNode.parentNode.remove()"
-                    >
-                       <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                       </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>`;
-
-        const alertElement = document.createElement("div");
-        alertElement.innerHTML = alertHTML;
-        document.body.appendChild(alertElement);
-
-        setTimeout(function () {
-          alertElement.remove();
-        }, 3000);
-      }
+    
     </script>
-    <script>
-    function addToCart(productId) {
-        // Assuming you store cart items in the session or database
-        fetch('keranjang.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'productId=' + productId
-        })
-        .then(response => response.text())
-        .then(data => {
-            showSuccessAlert(); // Call the success alert after adding to cart
-        });
-    }
-
-    function showSuccessAlert() {
-        const alertHTML = `<div class="fixed inset-x-0 top-0 flex items-end justify-right px-4 py-24 justify-center z-50">
-            <div class="max-w-sm w-full shadow-lg rounded px-4 py-3 rounded relative bg-green-400 border-l-4 border-green-700 text-white">
-                <p class="text-sm leading-5 font-medium">
-                    Produk telah ditambahkan ke keranjang!
-                </p>
-            </div>
-        </div>`;
-
-        const alertElement = document.createElement("div");
-        alertElement.innerHTML = alertHTML;
-        document.body.appendChild(alertElement);
-
-        setTimeout(() => alertElement.remove(), 3000);
-    }
-</script>
+   
   </head>
   <body class="bg-pink-100 font-sans antialiased">
     <!-- Navbar -->
@@ -294,9 +232,8 @@ $produk_result = mysqli_query($koneksi, $query_produk);
                         </span>
                     </div>
                     <div class="flex justify-end mt-auto">
-                    <button class="bg-green-500 text-white px-4 py-1 rounded-md hover:bg-green-600 w-auto" onclick="addToCart(<?php echo $produk['id_produk']; ?>)">
-    Tambah
-</button>
+                    <button class="bg-blue-500 text-white px-4 py-2 mt-3 rounded add-to-cart" data-id="<?php echo $produk['id_produk']; ?>">Tambah ke Keranjang</button>
+
                     </div>
                 </div>
             </div>
@@ -305,10 +242,29 @@ $produk_result = mysqli_query($koneksi, $query_produk);
     </div>
     </div>
 
-     <script>
-        function showSuccessAlert() {
-            alert("Produk berhasil ditambahkan!");
-        }
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', async () => {
+                const productId = button.dataset.id;
+
+                try {
+                    const response = await fetch('keranjang.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_produk: productId })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        Swal.fire('Berhasil', 'Produk telah ditambahkan ke keranjang!', 'success');
+                    } else {
+                        Swal.fire('Gagal', 'Terjadi kesalahan, coba lagi.', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Tidak dapat terhubung ke server.', 'error');
+                }
+            });
+        });
     </script>
 
     <div class="wave-bg-3 relative bg-[#FFE0EB]">
