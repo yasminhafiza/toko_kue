@@ -1,15 +1,51 @@
-<?php 
+<?php
+session_start();
 include 'koneksi/koneksi.php';
 
-$query = "SELECT * FROM kategori WHERE nama_kategori = 'Pasta'";
+// Fungsi untuk menambahkan produk ke keranjang
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $product_id = $data['id_produk'];
 
-$result = mysqli_query($koneksi, $query);
-$kategori = mysqli_fetch_assoc($result);
+    // Cek apakah produk sudah ada di keranjang
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
+    }
 
-$query_produk = "SELECT * FROM produk WHERE id_kategori = " .$kategori['id_kategori'];
-$produk_result = mysqli_query($koneksi, $query_produk);
-?>
+    $found = false;
+    foreach ($_SESSION['cart'] as $key => $cart_item) {
+        if ($cart_item['id_produk'] == $product_id) {
+            $_SESSION['cart'][$key]['quantity'] += 1;
+            $found = true;
+            break;
+        }
+    }
 
+    if (!$found) {
+        // Ambil data produk dari database
+        $query = "SELECT * FROM produk WHERE id_produk = $product_id";
+        $result = mysqli_query($koneksi, $query);
+        $product = mysqli_fetch_assoc($result);
+
+        // Tambahkan produk ke keranjang
+        $_SESSION['cart'][] = [
+            'id_produk' => $product['id_produk'],
+            'nama_produk' => $product['nama_produk'],
+            'harga' => $product['harga'],
+            'quantity' => 1,
+            'gambar' => $product['gambar']
+        ];
+    }
+
+    echo json_encode(['success' => true, 'message' => 'Produk berhasil ditambahkan ke keranjang']);
+}
+
+// Menampilkan keranjang belanja
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    $cart_items = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+    $total_price = 0;
+    ?>
+    
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -21,14 +57,16 @@ $produk_result = mysqli_query($koneksi, $query_produk);
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
     />
-
-    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-    <!-- Jika menggunakan PNG, sesuaikan dengan kode ini -->
-    <link rel="icon" href="assets/foto/logo.jpg" type="image/png"> 
-
-    
-    <title>Pasta</title>
+    <title>Mom's Cemara</title>
     <style>
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
       .wave-bg-1 {
         background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="600" viewBox="0 0 1440 600" fill="none"><path d="M1440 600H0.124157C0.124157 544.093 0.124059 202.017 0 143.434C198.57 167.744 357.089 186.04 591.833 143.434C1010.19 67.503 1440 0 1440 0V600Z" fill="%23FFC9DB"/></svg>')
           no-repeat center;
@@ -46,16 +84,32 @@ $produk_result = mysqli_query($koneksi, $query_produk);
           no-repeat center;
         background-size: cover;
       }
-
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
     </style>
     <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("btn-selengkapnya")
+          .addEventListener("click", function () {
+            Swal.fire({
+              title:
+                '<h2 class="text-xl font-bold">Tentang <span class="text-pink-500">Mom&#39;s Cemara</span></h2>',
+              html: `<div class="text-left bg-[#B6EADD]">
+                        <p class="mb-4">Moms Cemara adalah sebuah toko kue yang berdedikasi untuk menghadirkan kue-kue berkualitas tinggi dengan cita rasa rumahan yang autentik. Didirikan dengan cinta dan semangat untuk menciptakan kelezatan yang dapat dinikmati oleh seluruh keluarga, Moms Cemara memastikan bahwa setiap produk dibuat dari bahan-bahan terbaik dan resep yang telah teruji, sehingga semua produk yang diproduksi sudah teruji halal.</p>
+                        <p>Moms Cemara percaya bahwa kue bukan hanya sekedar makanan, tetapi juga sebuah sarana untuk menyebarkan kebahagiaan dan kehangatan. Oleh karena itu, setiap kue yang dihasilkan tidak hanya enak, tetapi juga dibuat dengan penuh perhatian dan kasih sayang, sehingga setiap gigitan membawa kebahagiaan tersendiri.</p>
+                    </div>`,
+              showCloseButton: true,
+              showConfirmButton: false,
+              customClass: {
+                popup: "bg-[#B6EADD]",
+                title: "text-black",
+                htmlContainer: "text-white",
+                confirmButton:
+                  "bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl",
+              },
+            });
+          });
+      });
+
       document.addEventListener("DOMContentLoaded", function () {
         const mobileMenuButton = document.querySelector("button.md\\:hidden");
         const mobileMenu = document.getElementById("mobile-menu");
@@ -80,11 +134,25 @@ $produk_result = mysqli_query($koneksi, $query_produk);
         });
       });
 
-    
+      function aboutus() {
+        Swal.fire({
+          position: "top-mid",
+          icon: "success",
+          title: "Nantikan Info Promo Menarik Lainnya",
+          showConfirmButton: false,
+          timer: 1500,
+          customClass: {
+            popup: "bg-[#FFE0EB]",
+            title: "text-black",
+            htmlContainer: "text-white",
+            confirmButton:
+              "bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-xl",
+          },
+        });
+      }
     </script>
-   
   </head>
-  <body class="bg-pink-100 font-sans antialiased">
+  <body>
     <!-- Navbar -->
     <nav
       class="flex items-center justify-between px-4 md:px-8 lg:px-12 py-4 bg-gray-300/50 backdrop-blur-md fixed w-full z-50"
@@ -197,75 +265,105 @@ $produk_result = mysqli_query($koneksi, $query_produk);
         </div>
       </div>
     </nav>
+    <!-- Hero Section -->
+    <section
+      class="bg-[#B6EADD] min-h-screen flex flex-col justify-center items-center pt-20 pb-20 px-4 sm:px-6 lg:px-8"
+    >
+      <div class="w-full max-w-md md:max-w-3xl mb-6 flex flex-row items-center">
+        <img src="assets/foto/tombol_balik.png" alt="backing" class="mr-2 mt-2" />
+        <h1 class="text-3xl sm:text-3xl font-bold text-gray-800">
+          Keranjang Belanja
+        </h1>
+      </div>
+      <div
+        class="bg-pink-100 w-full max-w-md md:max-w-3xl rounded-lg shadow-lg p-4 sm:p-6"
+      >
+        <!-- Shopping Cart Items -->
+        <?php if (count($cart_items) > 0): ?>
+        <div class="space-y-4">
+            <?php foreach ($cart_items as $key => $item): 
+                $total_item_price = $item['harga'] * $item['quantity'];
+                $total_price += $total_item_price;
+            ?>
+                <div class="flex flex-row sm:flex-row items-center border-b-2 border-black pb-4">
+                    <img src="assets/foto_produk/<?php echo $item['gambar']; ?>" alt="<?php echo $item['nama_produk']; ?>" class="w-22 h-20 sm:w-18 h-20 rounded-md object-cover mb-3 sm:mb-0" />
+                    <div class="ml-2 sm:ml-4 flex-1 text-left sm:text-left">
+                        <h2 class="font-semibold text-gray-700 mb-2"><?php echo $item['nama_produk']; ?></h2>
+                        <div class="flex items-center justify-start sm:justify-start">
+                            <button class="text-pink-500 border border-pink-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-pink-500 hover:text-white transition-colors add-quantity" data-key="<?php echo $key; ?>">−</button>
+                            <span class="mx-2 text-gray-800"><?php echo $item['quantity']; ?></span>
+                            <button class="text-pink-500 border border-pink-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-pink-500 hover:text-white transition-colors reduce-quantity" data-key="<?php echo $key; ?>">+</button>
+                        </div>
+                    </div>
+                    <p class="text-black font-bold mt-3 sm:mt-0">Rp <?php echo number_format($item['harga'], 0, ',', '.'); ?></p>
+                </div>
+            <?php endforeach; ?>
+            
+            <!-- Notes Section -->
+            <div class="mt-4">
+                <textarea id="notes" rows="3" class="w-full p-2 border rounded-md focus:ring focus:ring-pink-300 text-sm sm:text-base" placeholder="Catatan (maksimal 150 kata)"></textarea>
+            </div>
 
-    <!-- Card section -->
-    <div class="max-w-7xl mx-auto p-3 pt-24 pb-32">
-    <div class="flex flex-row items-center mb-8">
-  <a href="index.php">
-    <img src="assets/foto/tombol_balik.png" alt="backing" class="mr-2" />
-  </a>
-  <h1 class="text-2xl font-bold text-gray-800">
-    Menu Pilihan Pasta
-  </h1>
+            <!-- Subtotal and Button -->
+            <div class="flex flex-row sm:flex-row justify-between items-start sm:items-center mt-6 gap-4 sm:gap-0">
+                <p class="text-base sm:text-lg font-bold text-gray-700">Subtotal Produk</p>
+                <p class="text-base sm:text-lg font-bold text-gray-800">Rp <?php echo number_format($total_price, 0, ',', '.'); ?></p>
+            </div>
+
+            <!-- Checkout Button -->
+            <a href="informasi_pemesanan.html">
+                <button class="w-auto sm:w-auto mt-4 py-2 px-3 bg-teal-500 hover:bg-teal-600 text-white rounded-md font-semibold shadow-lg text-sm sm:text-base max-w-md md:max-w-3xl">
+                    Lanjutkan Pemesanan
+                </button>
+            </a>
+        </div>
+    <?php else: ?>
+        <p class="text-center text-lg">Keranjang Anda kosong.</p>
+    <?php endif; ?>
 </div>
 
-
-      <!-- Horizontal Scrollable Menu -->
-      <div class="relative overflow-x-auto">
-        <div class="flex flex-nowrap md:mx-auto md:flex-wrap gap-4 pb-4 overflow-x-scroll md:overflow-x-auto scrollbar-hide">
-            <?php
-            // Menampilkan produk pasta dalam card
-            while ($produk = mysqli_fetch_assoc($produk_result)) {
-            ?>
-            <div class="bg-white rounded-lg shadow-md overflow-hidden min-w-[280px] md:w-[calc(25%-0.75rem)] flex flex-col">
-                <h2 class="text-lg font-semibold text-center py-4 mt-2 h-[72px] flex items-center justify-center">
-                    <?php echo $produk['nama_produk']; ?>
-                </h2>
-                <img src="assets/foto_produk/<?php echo $produk['gambar']; ?>" alt="<?php echo $produk['nama_produk']; ?>" class="w-full h-40 object-cover" />
-                <div class="p-3 flex flex-col flex-grow">
-                    <div class="flex justify-between items-start mb-4">
-                        <p class="text-gray-600 text-sm w-2/3 h-auto">
-                            <?php echo $produk['deskripsi']; ?>
-                        </p>
-                        <span class="text-lg font-bold text-gray-700 pl-4 whitespace-nowrap">
-                            RP <?php echo number_format($produk['harga'], 0, ',', '.'); ?>
-                        </span>
-                    </div>
-                    <div class="flex justify-end mt-auto">
-                    <button class="bg-blue-500 text-white px-4 py-2 mt-3 rounded add-to-cart" data-id="<?php echo $produk['id_produk']; ?>">Tambah ke Keranjang</button>
-
-                    </div>
-                </div>
-            </div>
-            <?php } ?>
-        </div>
-    </div>
-    </div>
+    </section>
 
     <script>
-        document.querySelectorAll('.add-to-cart').forEach(button => {
-            button.addEventListener('click', async () => {
-                const productId = button.dataset.id;
-
-                try {
+            document.querySelectorAll('.add-quantity').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const key = button.dataset.key;
                     const response = await fetch('keranjang.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id_produk: productId })
+                        body: JSON.stringify({ action: 'add_quantity', key: key })
                     });
-
                     const result = await response.json();
-                    if (result.success) {
-                        Swal.fire('Berhasil', 'Produk telah ditambahkan ke keranjang!', 'success');
-                    } else {
-                        Swal.fire('Gagal', 'Terjadi kesalahan, coba lagi.', 'error');
-                    }
-                } catch (error) {
-                    Swal.fire('Error', 'Tidak dapat terhubung ke server.', 'error');
-                }
+                    location.reload();
+                });
             });
-        });
-    </script>
+
+            document.querySelectorAll('.reduce-quantity').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const key = button.dataset.key;
+                    const response = await fetch('keranjang.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'reduce_quantity', key: key })
+                    });
+                    const result = await response.json();
+                    location.reload();
+                });
+            });
+
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const key = button.dataset.key;
+                    const response = await fetch('keranjang.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'remove_item', key: key })
+                    });
+                    const result = await response.json();
+                    location.reload();
+                });
+            });
+        </script>
 
     <div class="wave-bg-3 relative bg-[#FFE0EB]">
       <div class="absolute w-full h-36 top-0"></div>
@@ -296,7 +394,7 @@ $produk_result = mysqli_query($koneksi, $query_produk);
               placeholder="Enter your email Address"
               class="px-4 py-2 w-2/3 shadow-xl md:w-1/2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
-            <button
+            <button onclick="aboutus()"
               class="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-xl hover:bg-teal-600"
             >
               Subscribe
@@ -344,3 +442,6 @@ $produk_result = mysqli_query($koneksi, $query_produk);
     </div>
   </body>
 </html>
+<?php
+}
+?>
