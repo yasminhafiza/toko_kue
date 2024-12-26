@@ -184,7 +184,7 @@ if (!isset($_SESSION['user_id'])) {  // Gunakan 'user_id' yang sudah benar
             /></button
         ></a>
         <a
-          href="index_after.html"
+          href="index.php"
           class="hover:text-gray-300 text-sm lg:text-base"
           >Beranda</a
         >
@@ -200,17 +200,60 @@ if (!isset($_SESSION['user_id'])) {  // Gunakan 'user_id' yang sudah benar
               Promo
           </a>
 
-        <a href="profile_user.php">
-          <button
-            class="px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-white hover:text-gray-800 transition text-sm lg:text-base"
-          >
-            <img
-              src="assets/foto/avatar.png"
-              alt=""
-              class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover"
-            />
-          </button>
-        </a>
+        <!-- Tombol Profile dengan Dropdown -->
+<div class="relative">
+  <button
+    id="profileMenuButton"
+    class="flex items-center px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-white hover:text-gray-800 transition text-sm lg:text-base"
+  >
+    <img
+      src="assets/foto/avatar.png"
+      alt="User Avatar"
+      class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full object-cover"
+    />
+  </button>
+  <!-- Dropdown Menu -->
+  <div
+    id="profileDropdown"
+    class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50" style="margin-bottom: 10px;"
+  >
+    <a
+      href="profile_user.php"
+      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+    >
+      Profile
+    </a>
+    <a
+      href="logout.php"
+      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+    >
+      
+    </a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const profileMenuButton = document.getElementById("profileMenuButton");
+    const profileDropdown = document.getElementById("profileDropdown");
+
+    // Toggle dropdown visibility
+    profileMenuButton.addEventListener("click", function () {
+      profileDropdown.classList.toggle("hidden");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function (event) {
+      if (
+        !profileDropdown.contains(event.target) &&
+        !profileMenuButton.contains(event.target)
+      ) {
+        profileDropdown.classList.add("hidden");
+      }
+    });
+  });
+</script>
+
       </div>
 
       <!-- Mobile Menu Button -->
@@ -255,9 +298,15 @@ if (!isset($_SESSION['user_id'])) {  // Gunakan 'user_id' yang sudah benar
           <a  class="hover:text-black text-center"
             >Promo</a
           >
+          <a
+      href="logout.php"
+     class="hover:text-black text-center"
+    >
+      Logout
+    </a>
           <a href="profile_user.html" class="hover:text-black text-center">
             <div class="flex justify-center items-center gap-2">
-              <a href="profile_user.html" class="flex items-center gap-2"
+              <a href="profile_user.php" class="flex items-center gap-2"
                 ><img
                   src="assets/foto/avatar.png"
                   alt=""
@@ -270,6 +319,9 @@ if (!isset($_SESSION['user_id'])) {  // Gunakan 'user_id' yang sudah benar
         </div>
       </div>
     </nav>
+
+
+
 
     <!-- Hero Section -->
     <div
@@ -291,6 +343,9 @@ if (!isset($_SESSION['user_id'])) {  // Gunakan 'user_id' yang sudah benar
 
     </div>
 
+
+
+
     <!-- Menu Section -->
     <div id="menu-section" class="bg-[#B6EADD] px-4 sm:px-6 md:px-8 lg:px-12 py-8 md:py-12">
       <div class="max-w-7xl mx-auto">
@@ -310,6 +365,9 @@ if (!isset($_SESSION['user_id'])) {  // Gunakan 'user_id' yang sudah benar
           <div
             class="flex overflow-x-auto gap-4 md:gap-6 lg:gap-8 snap-x snap-mandatory no-scrollbar"
           >
+
+
+
             <!-- Menu Cards -->
             <div
               class="flex-none w-60 sm:w-64 md:w-72 bg-white rounded-lg shadow-lg overflow-hidden snap-start"
